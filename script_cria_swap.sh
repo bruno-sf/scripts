@@ -173,10 +173,11 @@ dd if=/dev/zero of=$ARQUIVOSWP bs=1024k count=$TAMANHO || fnsair 1
 wait
 #fnnohup $SWPCMD || fnsair 1
 
-if [ -f "$ARQUIVOSWP" ]; then chmod 0600 $ARQUIVOSWP; mkswap $ARQUIVOSWP; swapon $ARQUIVOSWP; fnecho 'Swap criado com sucesso.'; fi
-cat /proc/swaps && fnsair 0
+if [ -f "$ARQUIVOSWP" ]; then chmod 0600 $ARQUIVOSWP; mkswap $ARQUIVOSWP; swapon $ARQUIVOSWP; fnecho 'Swap criado com sucesso.'; cat /proc/swaps; fnsair 0; fi
+
 #Saindo...
 fnsair 1
+
 #######################
 #---FIM do programa---#
 #######################
