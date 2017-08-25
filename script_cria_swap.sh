@@ -174,10 +174,9 @@ wait
 #fnnohup $SWPCMD || fnsair 1
 
 if [ -f "$ARQUIVOSWP" ]; then chmod 0600 $ARQUIVOSWP; mkswap $ARQUIVOSWP; swapon $ARQUIVOSWP; fnecho 'Swap criado com sucesso.'; fi
-cat /proc/swaps
-
+cat /proc/swaps && fnsair 0
 #Saindo...
-fnsair 0
+fnsair 1
 #######################
 #---FIM do programa---#
 #######################
