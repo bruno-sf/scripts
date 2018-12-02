@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #-------------------------------------------------------#
 #			Script Sync Timestamp 		                #
 #-------------------------------------------------------#
 #		Data de criacao:28/03/2018		                #
+#		Ultima Edicao:01/12/2018		                #
 #-------------------------------------------------------#
-#Versao:01                                           	#
+#Versao: 02                                           	#
 #Desenvolvido por:Bruno Ferreira 			            #
 #Bugs e Correcoes:brunosilvaferreiraf@protonmail.com	#
 #-------------------------------------------------------#
@@ -19,7 +20,10 @@
 #########################################################
 #-------------------------------------------------------#
 #########################################################
-
+#Carrega funcoes genericas
+BIBLIOTECA="/home/brunof/scripts/biblioteca_generica.sh"
+BIBLIOTECA="biblioteca_generica.sh"
+source $BIBLIOTECA > /dev/null 2>&1 || { echo "Erro ao carregar $BIBLIOTECA."; exit 101; }
 #########################
 #---INICIO Constantes---#
 #########################
@@ -33,104 +37,26 @@ TMP_FINAL="/tmp/final$$"
 #---FIM Constantes---#
 ######################
 
-################################
-#---Inicio sessao de Funcoes---#
-################################
-
-#####################################
-#---INICIO-Funcao de echo---#
-#####################################
-#Descricao:Funcao que padroniza as saidas de texto do programa.
-fnecho () {
-	echo "###--- $NOME_SCRIPT: $1 ---###"
-        return 0
-}
-#########################
-#---FIM Funcao de echo---#
-#########################
-
-#####################################
-#---INICIO-Funcao path---#
-#####################################
-#Descricao:Funcao que pega o path do programa.
-fnpath () {
-        while [ $# -gt 0 ] ; do
-        [ -z $1 ]  && break;
-                if [ which -a $1 > /dev/null ]; 
-		then
-	                shift
-		else
-			 fnecho "Um dos programas ($PROGS) nao foi encontrado!";
-			 return 1;
-		fi
-	done
-        return 0
-}
-#########################
-#---FIM Funcao path---#
-#########################
-
-#####################################
-#---INICIO-Funcao sair---#
-#####################################
-#Descricao:Funcao que executa checagem, limpeza, e outros antes de sair.
-fnsair () {
-	CODIGO="$1"
-	case $CODIGO in
-	0)
-		fnecho "Saindo tudo ok..."
-    	;;
-	1)
-		fnecho "Ok, saindo por decisao do usuario..."
-    	;;
-	2)
-        fnecho "Erro, use apenas 2 parametros <PATHORIGEM> <PATHDESTINO>."
-        ;;
-	3)
-        fnecho "Erro, diretorio invalido."
-        ;;
-	*)
-		fnecho "Erro das trevas, fuja para as montanhas!"
-    	;;
-	esac
-
-    [ -e $TMP_ORIGEM -a -e $TMP_DESTINO	] && rm -f $TMP_ORIGEM $TMP_DESTINO	$TMP_FINAL
-	
-    exit $CODIGO;
-    return 0
-}
-#########################
-#---FIM Funcao sair---#
-#########################
-
-#################################
-#---Termino sessao de funcoes---#
-#################################
-
-##########################
-#---INICIO do programa---#
-##########################
 clear
 fnpath $PROGS || fnsair 9
 
-if [ $QTD_PAR -ne 2 ]; then fnsair 2; fi
-PATH_ORIGEM=$1
-PATH_DESTINO=$2
+if [ $QTD_PAR -ne 2 ]; then fnsair 1 "Faltam argumentos!"; fi
+PATH_ORIGEM="$1"
+PATH_DESTINO="$2"
 
-[ -d "$PATH_ORIGEM" ] || fnsair 3
-[ -d "$PATH_DESTINO" ] || fnsair 3
+[ -d "$PATH_ORIGEM" ] || fnsair 1 "Caminho invalido! $PATH_ORIGEM"
+[ -d "$PATH_DESTINO" ] || fnsair 1 "Caminho invalido! $PATH_DESTINO"
 
-fnecho "Path Origem está correto? Origem: $PATH_ORIGEM"
-fnecho "Path Destino está correto? Destino: $PATH_DESTINO"
+fnecho "ATENCAO!"
+fnecho "Confirme se a Origem está correta: $PATH_ORIGEM"
+fnecho "Confirme se o Destino está correto: $PATH_DESTINO"
 read -p "Deseja continuar [S/n]" ESCOLHA
-[ "$ESCOLHA" ] || ESCOLHA="S"
+[ "$ESCOLHA" ] || ESCOLHA="S" #Se der ENTER vai que vai ;)
 
 if [ $ESCOLHA = "S" ]; then 
-	find "$PATH_ORIGEM" -type f | sort -o "$TMP_ORIGEM" || fnsair 4
-	find "$PATH_DESTINO" -type f | sort -o "$TMP_DESTINO" || fnsair 5
-	[ -f $TMP_ORIGEM ] || fnsair 7
-	[ -f $TMP_DESTINO ] || fnsair 8
-
+	find "$PATH_ORIGEM" -type f | sort -o "$TMP_ORIGEM"; [ -f $TMP_ORIGEM ] || fnsair 7
+	find "$PATH_DESTINO" -type f | sort -o "$TMP_DESTINO"; [ -f $TMP_DESTINO ] || fnsair 8
+	
 	QTD_ORIGEM=`wc -l $TMP_ORIGEM | cut -d " " -f1`
 	QTD_DESTINO=`wc -l $TMP_DESTINO | cut -d " " -f1`
 
@@ -149,14 +75,14 @@ if [ $ESCOLHA = "S" ]; then
         ARQ_DESTINO=`printf "$LINHA" | cut -d";" -f2`;
         HASH1=`md5sum "$ARQ_ORIGEM" | cut -d" " -f1`;
         HASH2=`md5sum "$ARQ_DESTINO" | cut -d" " -f1`;
-        [ "$HASH1" = "$HASH2" ] || break; 
-        test "$ARQ_ORIGEM" -ot "$ARQ_DESTINO" && touch -r "$ARQ_ORIGEM" "$ARQ_DESTINO";
-
+        if [ "$HASH1" = "$HASH2" ]; then
+            test "$ARQ_ORIGEM" -ot "$ARQ_DESTINO" && touch -r "$ARQ_ORIGEM" "$ARQ_DESTINO" && fnecho "Sync feito $ARQ_ORIGEM -> $ARQ_DESTINO" ;
+        else
+            fnecho "Ops...Par de arquivos diferentes, pulando..."
+            break; 
+        fi
     done < $TMP_FINAL 
-	
 else
-
-	fnsair 1
-
+	fnsair 1 "Opcao invalida."
 fi
 fnsair 0
