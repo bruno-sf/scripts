@@ -1,21 +1,21 @@
 #!/bin/bash
 #-------------------------------------------------------#
-#			Script Sync Timestamp		#
+#			Script Sync Timestamp 		                #
 #-------------------------------------------------------#
-#		Data de criacao:28/03/2018		#
-#		Ultima Edicao:01/12/2018		#
+#		Data de criacao:28/03/2018		                #
+#		Ultima Edicao:01/12/2018		                #
 #-------------------------------------------------------#
 #Versao: 02                                           	#
-#Desenvolvido por:Bruno Ferreira 			#
+#Desenvolvido por:Bruno Ferreira 			            #
 #Bugs e Correcoes:brunosilvaferreiraf@protonmail.com	#
 #-------------------------------------------------------#
 # Descricao: Script para sincronizar os timestamp entre	#
-# arquivos iguais, util para usar com FreeFileSync 	#
-# Ex.: ./script.sh <PATHORIGEM> <PATHDESTINO>		#
+# arquivos iguais, util para usar com FreeFileSync 	    #
+# Ex.: ./script.sh <PATHORIGEM> <PATHDESTINO>		    #
 # O script realizara uma busca no path origem arquivo   #
 # arquivo por arquivo e pesquisara o mesmo arquivo no	#
 # PATHDESTINO caso o arquivo exista, mudara o timestamp	#
-# para o mesmo do arquivo em PATHORIGEM.		#
+# para o mesmo do arquivo em PATHORIGEM.		        #
 #-------------------------------------------------------#
 #########################################################
 #-------------------------------------------------------#
