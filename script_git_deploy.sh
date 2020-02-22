@@ -12,23 +12,36 @@
 
 # [CONFS]
 NOME_SCRIPT="Script GIT Deploy e Sync"
-TOKEN_WEB="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+TOKEN_WEB="beee5935c7023f7689e17fb436b2363d092ccbf4"
 PROTO="https"
 PORT="3000"
-HOST="XXXXXXXXXXXXXXXXXXXXXXXXXXXx" # [Git Gogs Rasp2 Meier]
-GIT_USER="XXXXXXXXXXXXXX"
+HOST="bsf.sytes.net" # [Git Gogs Rasp2 Meier]
+GIT_USER="brunof"
 CA_CRT_PATH="/etc/ssl/certs/ca-certificates.crt"
 CRT="-----BEGIN CERTIFICATE-----
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-PUT THE CONTENT OF YOUR GIT SRV CERTIFICATE HERE ;)
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
+MIIEJjCCAw6gAwIBAgIJAOfcAwiT2J0nMA0GCSqGSIb3DQEBCwUAMIGnMQswCQYD
+VQQGEwJCUjEXMBUGA1UECAwOUmlvIGRlIEphbmVpcm8xCzAJBgNVBAcMAlJKMRcw
+FQYDVQQKDA5NeSBPd24gR2l0UmVwbzEPMA0GA1UECwwGQnJ1bm9mMRYwFAYDVQQD
+DA1ic2Yuc3l0ZXMubmV0MTAwLgYJKoZIhvcNAQkBFiFicnVub3NpbHZhZmVycmVp
+cmFAcHJvdG9ubWFpbC5jb20wHhcNMTkwODI4MTQwMjMwWhcNMjAwODI3MTQwMjMw
+WjCBpzELMAkGA1UEBhMCQlIxFzAVBgNVBAgMDlJpbyBkZSBKYW5laXJvMQswCQYD
+VQQHDAJSSjEXMBUGA1UECgwOTXkgT3duIEdpdFJlcG8xDzANBgNVBAsMBkJydW5v
+ZjEWMBQGA1UEAwwNYnNmLnN5dGVzLm5ldDEwMC4GCSqGSIb3DQEJARYhYnJ1bm9z
+aWx2YWZlcnJlaXJhQHByb3Rvbm1haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEApbv0hcr5ulqwJGRs5S3qRr7tgFGbyPQwGW/Etzwepmc9hfON
+kgomYzOtoADGPKDVTcEKvrgBMaCeex/+J1gUbUHyXqCTyzgiM0EwcGNCp6jjkJsp
+W024EcJKDavH5YPYuVHfJ25GAgXmvUjpwc2cBgL4MGNLnzn5t0qvJ2VOPCcbgE+Y
+WY2QD1PUDrtrugZKNAW1n4/YBBgV7nrRKDwBpD2ZYIAwD07ELjNXP+RCrE2aMpdS
+BKiVAsYNgZU2r5rmOd7QZCjOHAUKQ9f9a507/BYaBrcytBhWnb39bPATcvBEhS+b
+dRHD88cw8UHagywWwRopt07CoZbTSHFQrQpFgwIDAQABo1MwUTAdBgNVHQ4EFgQU
+nj+vDZ6w+6jFvRRAhMaln1XVHngwHwYDVR0jBBgwFoAUnj+vDZ6w+6jFvRRAhMal
+n1XVHngwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAhCxHGInX
+J0CBdeejEYR1Hn6gvWDgSNS2xpJF6APtDfAImFxgF7CMgbl4e7d678k9yuPxpm7U
+8NK2iQCsxBmNjCSTUMJAUl4gnhxPaiibpI2SVM9wKWJmCIfO2uffuXDhyDFyAIqY
+KGCubHfa64Qfa42kQHN6szAVp/V7iueLqHjHsAWYlvDHrsKji7+t6SSVSfPjZ5i9
+PMqLvVXyr4U9XOjTqDfyhDWNXY0L/cxEdVm0cM5SMWrFeZSPqbgGE9XO/PtECBiq
+esFLvmlTZtEkfIyW0WDB6NrgblJeSlTR2cNNtrY5B0/tRuKoCuHASp6OBeLAeWff
+XbWcEzl1ygMAHw==
 -----END CERTIFICATE-----"
 
 # [REPOS]
@@ -55,8 +68,8 @@ fn_chk_crt () {
 
     [ "$REMOTE_CRT" != "$CRT" ] && { echo "[Security alert]: The certificate from host don't look correct. If you change it recently, please update CRT var on this script, or you can be suffering a phishing attack and should not continue!"; exit 1; }
     [ -f "$CA_CRT_PATH" ] && { echo -n "$CRT" | sed '/-----/d' | grep -qxwf "$CA_CRT_PATH" && return; } #Cert already "installed"
-    echo "Can't find the content of the host cert on your local CA file ("$CA_CRT_PATH")."
-    read -p "Do you wish to install it (y/n)?" choice
+    echo "[FAIL]: Can't find the the host cert on your local CA file: ["$CA_CRT_PATH"]."
+    read -p "Do you wish to install it [Y/n]?" choice
     case "$choice" in
     y|Y ) fn_install_crt;;
     n|N ) echo "Ok, I will NOT install the cert as you wish...";;
@@ -66,8 +79,11 @@ fn_chk_crt () {
 fn_install_crt () {
     #Install the cert appending it on CA File
     [ -w "$CA_CRT_PATH" ] && echo "$CRT" >> $CA_CRT_PATH && echo "[OK]: Cert successfully installed!" && return 0
-    echo "[FAIL]: Sorry, the user ["$USER"] don't have permission to write on ["$CA_CRT_PATH"] and so do I.Ok, last shot...Trying with sudo..."
+    echo "[FAIL]: Sorry, the user ["$USER"] don't have permission to write on ["$CA_CRT_PATH"] and so do I. Ok, trying with sudo..."
     echo "$CRT" | sudo tee -a $CA_CRT_PATH && echo "[OK]: Cert successfully installed!" && return 0
+    echo "[FAIL]: Well, last shot...Maybe global configs isn't for you, but you can at least configure it just for your user."
+    echo -n "$CRT" > "$HOME"/"$HOST".crt && git config --global http."https://$HOST:$PORT".sslCAInfo $HOME/$HOST.crt && echo "[OK]: Cert successfully installed!" && return 0
+    return 1
 }
 
 fn_clone_repo () {
@@ -80,7 +96,6 @@ fn_clone_repo () {
         shift
     done
 }
-
 
 fn_pull_repo () {
     while [ $# -gt 0 ] ; do
@@ -99,8 +114,7 @@ fn_pull_repo () {
     done
 }
 
-# [BEGIN]
-# Check local REPO
+# [BEGIN] - Check local REPO
 if [ -d  "$DIR_LOCAL_REPO" ]; then
     fn_pull_repo $REPOS
 else
