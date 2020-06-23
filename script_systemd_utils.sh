@@ -4,7 +4,7 @@
 #               Criado em: 22/06/2020                   #
 #-------------------------------------------------------#
 # Descricao: Script escrito para agrupar os cmds mais   #
-# mais comuns do systemd.                               #
+# comuns do systemd.                                    #
 # Description: Script written to group some of the most #
 # used commands from systemd.                           #
 #-------------------------------------------------------#
