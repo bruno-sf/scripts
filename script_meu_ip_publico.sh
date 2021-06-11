@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------#
 #       Data de criacao:08/10/2018 - Ultima Edicao: 11/06/2021      #
 #-------------------------------------------------------------------#
-# Versao: 2 - Autor: brunosilvaferreira@protonmail.com 	            #
+# Versao: 2 - Autor: brunosilvaferreira@protonmail.com              #
 #-------------------------------------------------------------------#
 # Descricao: Retorna o IP pub. Perfeito em combinacao com bash      #
 # aliases exemplo: @net_meu_ip='script_meu_ip_pub.sh'               #
@@ -12,7 +12,12 @@
 # do array, comparando se os ips sao iguais em pelo menos 2 results #
 #-------------------------------------------------------------------#
 
-ARRAY_SITES=("http://whatismyip.akamai.com/" "https://checkip.amazonaws.com" "www.icanhazip.com" "ipinfo.io/ip" "http://ip.42.pl/raw" "ifconfig.me/ip" " https://api.ipify.org/")
+ARRAY_SITES=("http://whatismyip.akamai.com/" 
+            "https://checkip.amazonaws.com" 
+            "www.icanhazip.com" "ipinfo.io/ip" 
+            "http://ip.42.pl/raw" 
+            "ifconfig.me/ip" 
+            "https://api.ipify.org/")
 
 fn_array_meu_ip () {
 	ARRAY_LEN=${#ARRAY_SITES[@]}
