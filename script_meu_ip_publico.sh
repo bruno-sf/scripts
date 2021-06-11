@@ -1,62 +1,30 @@
-#!/bin/sh
-#-------------------------------------------------------#
-#		Script Meu IP Publico	  		#
-#-------------------------------------------------------#
-#		Data de criacao:08/10/2018		#
-#-------------------------------------------------------#
-#Versao: 02                                           	#
-#Bugs e Correcoes: brunosilvaferreira@protonmail.com 	#
-#-------------------------------------------------------#
-#Descricao: Retorna o IP pub. Use com cautela ;)       	#
-#-------------------------------------------------------#
-#Requisitos: curl dig	    				#
-#########################################################
+#!/bin/bash
+#-------------------------------------------------------------------#
+#                   Script Meu IP Publico                           #
+#-------------------------------------------------------------------#
+#       Data de criacao:08/10/2018 - Ultima Edicao: 11/06/2021      #
+#-------------------------------------------------------------------#
+# Versao: 2 - Autor: brunosilvaferreira@protonmail.com 	            #
+#-------------------------------------------------------------------#
+# Descricao: Retorna o IP pub. Perfeito em combinacao com bash      #
+# aliases exemplo: @net_meu_ip='script_meu_ip_pub.sh'               #
+# Chama a funcao em 3 servicos diferentes, aleatoriamente, dentro   #
+# do array, comparando se os ips sao iguais em pelo menos 2 results #
+#-------------------------------------------------------------------#
 
-#---INICIO Constantes---#
-NOME_SCRIPT="Script Meu IP Publico"
-PROGS="curl dig"
-SITE="http://ip.42.pl/raw"
-DNS="+short myip.opendns.com @resolver1.opendns.com"
-IP=""
-#---FIM Constantes---#
+ARRAY_SITES=("http://whatismyip.akamai.com/" "https://checkip.amazonaws.com" "www.icanhazip.com" "ipinfo.io/ip" "http://ip.42.pl/raw" "ifconfig.me/ip" " https://api.ipify.org/")
 
-#---INICIO-Funcao meuip---#
-#Descricao:Tenta pegar pelo metodo 1 caso nao consiga tenta o metodo 2.
-fnmeuip () {
-	#Metodo 1 - DNS
-	IP="$(dig $DNS)" #| sed -e 's/[^[:alnum:]]//g')"
-	IP_LEN=${#IP}
-	[ $IP_LEN -ne 0 -a $IP_LEN -lt 16 ] && { echo $IP ; return 0; }
-
-	return 1
+fn_array_meu_ip () {
+	ARRAY_LEN=${#ARRAY_SITES[@]}
+	RANDOM_INT=$(( (RANDOM % ${ARRAY_LEN}) ))
+	RANDOM_SITE=( "${ARRAY_SITES[${RANDOM_INT}]}" )
+	curl -s -m 10 ${RANDOM_SITE}
 }
-fnmeuip2 () {
-	#Metodo 2 - WWW
-	IP="$(curl -s $SITE)" #| sed -e 's/[^[:alnum:]]//g')"
-	IP_LEN=${#IP}
-	[ $IP_LEN -ne 0 -a $IP_LEN -lt 16 ] && { echo $IP ; return 0; }
 
-	return 1
-}	
-
-#---INICIO-Funcao path---#
-#Descricao:Funcao que pega o path do programa.
-fnpath () {
-        while [ $# -gt 0 ] ; do
-        [ -z $1 ]  && break;
-                if [ which -a $1 > /dev/null ]; 
-		then
-	                shift
-		else
-			 fnecho "Um dos programas ($PROGS) nao foi encontrado!";
-			 return 1;
-		fi
-	done
-        return 0
-}
-#---FIM Funcao path---#
-
-clear
-fnpath $PROGS || exit 1
-fnmeuip || fnmeuip2 || exit 1
-exit 0
+IP1=$( fn_array_meu_ip )
+IP2=$( fn_array_meu_ip )
+IP3=$( fn_array_meu_ip )
+[ "$IP1" == "$IP2" ] && echo $IP1 && exit 0
+[ "$IP1" == "$IP3" ] && echo $IP1 && exit 0
+[ "$IP2" == "$IP3" ] && echo $IP2 && exit 0
+echo "Fail" && exit 1
