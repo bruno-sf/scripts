@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 #---------------------------------------------------------------------------#
-#               Script Envia Chaves SSH - Ver: 0.5                          #
-#---------------------------------------------------------------------------#
-#       Data de criacao: 10/10/2016 - Ultima versao: 15/04/2021             #
-#                   Author: https://github.com/brunof-sf                    #
+#                       Script Envia Chaves SSH                             #
+#               CDate: 10/10/2016 - Last edition: 25/2023                   #
+#               Author: https://github.com/bruno-sf - Version 0.6           #
 #---------------------------------------------------------------------------#
 # Desc.[PT-BR]: Envio de chaves RSA do usuario para o(s) servidor(es)       #
 # remoto(s) habilitando o processo de login e operacoes automatizadas       #
 # via SSH.                                                                  #
-# Send RSA user keys to remote host(s) enabling automated tasks and         #
+# Send RSA user ssh RDS keys to remote host(s) enabling automated tasks and #
 # promptless logins via SSH.                                                #
-#---------------------------------------------------------------------------#
-#Usage: ./script <IP/HOSTNAME>                                              #
-#Usage: ./script <SRVFILE> (Um ip/hostname por linha)                       #
 #---------------------------------------------------------------------------#
 
 #---------------CONFIG---------------------------#
@@ -23,6 +19,8 @@ SSH_PUB_KEY_RSA="$SSH_DIR/id_rsa.pub"
 SSH_KEY_RSA="$SSH_DIR/id_rsa"
 SSH_PORT=22
 PROGS=( "ssh" "ssh-keygen" "ssh-copy-id" ) #REQS
+VERSION="0.6"
+LAST_EDT="FEB/2023"
 #------------------------------------------------#
 
 #---Inicio das Funcoes---#
@@ -37,12 +35,23 @@ fn_banner(){
 \____/\____/\_| |_/ \____/ \___|_| |_|\__,_| \_| \_/\___|\__, |___/
                                                           __/ |    
                                                          |___/     
-by: Bruno Ferreira - 0.5 - Apr 2021
-
-Usage:
-    ./script /home/user/servers1byline.txt
-    ./script a.remotehost.net
+Version 0.6 - Author Bruno Ferreira
 EOF
+}
+
+fn_usage(){
+    cat << "EOF"
+    Usage:
+    - interactive will ask confirmation about host, user and port
+    - non-interative Suitable for lot of hosts with same parameters. You must pass the parameters with -f -u -p in the command line.
+    
+    ARGS: -s -f -u -p -h | --server | --file | --user | --port | --help | --version
+    ./script remotehost.net # interactive
+    ./script hostsfile1byline.txt # interactive
+    ./script -s hostname/ip -u ${USER} -p 22022 # non-interactive
+    ./script -f hostsfile1byline.txt -u ${USER} -p 22022 # non-interactive
+EOF
+exit
 }
 
 fn_echo_color () {
@@ -222,7 +231,7 @@ fn_enviar_single () {
 }
 
 fn_chk_cmd () {
-    #Checa se um commando existe dentro do array REQS!
+    # Checa se um commando existe dentro do array REQS!
     local total=$
     for PROG in "${PROGS[@]}"
     do
@@ -230,6 +239,71 @@ fn_chk_cmd () {
     done
     return 0
 }
+
+fn_help() {
+    fn_banner
+    fn_usage
+}
+
+fn_version() {
+    fn_banner
+    fn_usage
+}
+
+fn_parse_args () {
+    # Parse command line arguments.
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -f|--file)
+                shift
+                SRVS_FILE="$1"
+                ;;
+            -h|--help)
+                fn_usage
+                ;;
+            -v|--version)
+                fn_version
+                ;;
+            -s|--server)
+                shift
+                SERVER="$1"
+                ;;
+            -u|--user)
+                shift
+                _USER="$1"
+                ;;
+            -p|--port)
+                shift
+                _PORT="$1"
+                ;;
+            *)
+                fn_usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
+fn_single_arg () {
+    # Checa se o argumento passado é um arquivo ou um IP/Hostname   
+    [ "$1" ] && ARG1="$1" || { fn_echo_color "Favor passar o IP/HOSTNAME ou um arquivo de servidores como argumento. Crie um arquivo com 1 ip/hostname por linha." "RED"; exit 2; }
+    [ -e "$ARG1"  ] && SRVS_FILE="$ARG1" || HOST="$ARG1"
+    fn_chk_lkeys
+
+    if [ "$HOST" ]; then
+        [ "$HOST" ] && fn_enviar_single "$HOST" || { fn_echo_color "[ERRO]: Nao foi possivel enviar a chave!" "RED"; }
+
+    elif [ "$SRVS_FILE" ]; then
+        [ "$SRVS_FILE" ] && fn_prompt_enviar "$SRVS_FILE" || { fn_echo_color "[ERRO] :Nao foi possivel enviar a chave!" "RED"; }
+
+    else
+        fn_echo_color "[ERRO]: Nao foi possivel determinar o IP/Arquivo fornecido!"
+        exit 8
+    fi
+    exit 0
+}
+
 #---Fim das Funcoes---#
 
 #Inicio
@@ -238,17 +312,11 @@ fn_banner
 
 #Checks
 fn_chk_cmd "$REQS"
-[ "$1" ] && ARG1="$1" || { fn_echo_color "Favor passar o IP/HOSTNAME ou um arquivo de servidores como argumento. Crie um arquivo com 1 ip/hostname por linha." "RED"; exit 2; }
-[ -e "$ARG1"  ] && SRVS_FILE="$ARG1" || HOST="$ARG1"
-fn_chk_lkeys
 
-if [ "$HOST" ]; then
-    [ "$HOST" ] && fn_enviar_single "$HOST" || { fn_echo_color "[ERRO]: Nao foi possivel enviar a chave!" "RED"; }
+# Check the number of arguments. If none are passed, print help and exit.
+[ $# -eq 0 ] && fn_usage
+[ $1 = "-h" ] && fn_usage
+[ $1 = "--help" ] && fn_usage
+[ $# -eq 1 ] && fn_single_arg "$1"
 
-elif [ "$SRVS_FILE" ]; then
-    [ "$SRVS_FILE" ] && fn_prompt_enviar "$SRVS_FILE" || { fn_echo_color "[ERRO] :Nao foi possivel enviar a chave!" "RED"; }
-
-else
-    fn_echo_color "[ERRO]: Nao foi possivel determinar o IP/Arquivo fornecido!"
-    exit 8
-fi
+fn_parse_args "$@" && fn_envia_chaves_bulk
